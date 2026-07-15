@@ -380,6 +380,113 @@
     line-height:1.5;
   }
   .kakao-tip-bubble.show{ display:block; }
+
+  /* ---------- 선생님 모드 ---------- */
+  .header-actions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+  .ghost-btn{
+    background:transparent;
+    border:1.5px solid rgba(251,247,238,0.4);
+    color:var(--paper);
+    border-radius:999px;
+    padding:9px 16px;
+    font-weight:600;
+    font-size:12.5px;
+    font-family:inherit;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .ghost-btn:hover{ background:rgba(251,247,238,0.1); }
+  .teacher-badge{
+    display:none;
+    align-items:center;
+    gap:6px;
+    font-size:11.5px;
+    color:var(--gold);
+    font-weight:700;
+    padding:6px 10px;
+    border:1px dashed var(--gold);
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  #adminPanelBtn, #logoutBtn{ display:none; }
+  body.teacher-mode .teacher-badge{ display:flex; }
+  body.teacher-mode #teacherBtn{ display:none; }
+  body.teacher-mode #adminPanelBtn{ display:inline-block; }
+  body.teacher-mode #logoutBtn{ display:inline-block; }
+
+  #loginOverlay{
+    position:fixed; inset:0;
+    background:rgba(27,42,74,0.45);
+    display:none;
+    z-index:60;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  #loginOverlay.show{ display:flex; }
+  #loginPanel{
+    background:var(--paper);
+    width:100%;
+    max-width:320px;
+    border-radius:16px;
+    padding:26px 24px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.3);
+    position:relative;
+  }
+  #loginPanel h2{ font-family:'Gowun Batang', serif; color:var(--navy); margin:0 0 14px; font-size:18px; }
+  #loginPanel input{
+    width:100%; border:1.5px solid var(--line); border-radius:8px;
+    padding:10px 12px; font-family:inherit; font-size:13.5px; margin-bottom:12px;
+  }
+  #loginPanel button{
+    width:100%; background:var(--coral); color:white; border:none; border-radius:8px;
+    padding:11px; font-weight:700; cursor:pointer; font-family:inherit;
+  }
+  #closeLogin{ position:absolute; top:14px; right:16px; border:none; background:none; font-size:18px; cursor:pointer; color:var(--ink); }
+  #loginMsg{ font-size:12px; color:var(--coral); min-height:16px; margin-top:2px; }
+
+  #adminOverlay{
+    position:fixed; inset:0;
+    background:rgba(27,42,74,0.45);
+    display:none;
+    z-index:55;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  #adminOverlay.show{ display:flex; }
+  #adminPanel{
+    background:var(--paper);
+    width:100%;
+    max-width:720px;
+    max-height:88vh;
+    overflow-y:auto;
+    border-radius:16px;
+    padding:24px 26px 30px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.3);
+    position:relative;
+  }
+  #closeAdmin{ position:absolute; top:16px; right:18px; border:none; background:none; font-size:20px; cursor:pointer; color:var(--ink); }
+  #adminPanel h2{ font-family:'Gowun Batang', serif; color:var(--navy); font-size:19px; margin:0 0 4px; }
+  .admin-section-title{
+    font-family:'Gowun Batang', serif; color:var(--navy); font-size:15px;
+    margin:22px 0 10px; display:flex; align-items:center; gap:8px;
+  }
+  .count-badge{ background:var(--coral); color:white; font-size:11px; font-weight:700; border-radius:999px; padding:2px 9px; }
+  .admin-item{
+    background:white; border:1px solid var(--line); border-radius:10px;
+    padding:14px 16px; margin-bottom:10px; display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;
+  }
+  .admin-item .info{ flex:1; min-width:200px; }
+  .admin-item h3{ font-family:'Gowun Batang', serif; margin:0 0 5px; color:var(--navy); font-size:14.5px; }
+  .admin-item p{ margin:0 0 6px; font-size:12.5px; line-height:1.5; color:rgba(38,50,74,0.85); }
+  .admin-item .meta{ font-size:11px; color:rgba(38,50,74,0.5); }
+  .admin-item .actions{ display:flex; gap:6px; flex:none; }
+  .admin-btn{ border:none; border-radius:7px; padding:8px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .admin-btn-approve{ background:var(--sage); color:white; }
+  .admin-btn-reject{ background:transparent; color:var(--coral); border:1.5px solid var(--coral); }
+  .admin-btn-delete{ background:transparent; color:rgba(38,50,74,0.5); border:1.5px solid var(--line); }
+  .admin-empty{ color:rgba(38,50,74,0.5); font-size:12.5px; padding:14px 0; }
 </style>
 </head>
 <body>
@@ -392,7 +499,13 @@
       <p>서울용답초 어린이들이 소개하는 우리 동네 이야기</p>
     </div>
   </div>
-  <button id="registerBtn">＋ 우리 동네 장소 등록하기</button>
+  <div class="header-actions">
+    <span class="teacher-badge">🔓 선생님 모드</span>
+    <button id="adminPanelBtn" class="ghost-btn">승인 관리</button>
+    <button id="logoutBtn" class="ghost-btn">로그아웃</button>
+    <button id="teacherBtn" class="ghost-btn">선생님 모드</button>
+    <button id="registerBtn">＋ 우리 동네 장소 등록하기</button>
+  </div>
 </header>
 
 <div id="app">
@@ -460,13 +573,40 @@
   </div>
 </div>
 
+<div id="loginOverlay">
+  <div id="loginPanel">
+    <button id="closeLogin" aria-label="닫기">✕</button>
+    <h2>선생님 모드</h2>
+    <input type="password" id="loginPassword" placeholder="비밀번호를 입력하세요">
+    <button id="loginBtn">들어가기</button>
+    <div id="loginMsg"></div>
+  </div>
+</div>
+
+<div id="adminOverlay">
+  <div id="adminPanel">
+    <button id="closeAdmin" aria-label="닫기">✕</button>
+    <h2>승인 관리</h2>
+    <p class="sub">학생들이 등록한 장소를 승인하거나 거절할 수 있어요.</p>
+
+    <div class="admin-section-title">승인 대기 중 <span class="count-badge" id="pendingCount">0</span></div>
+    <div id="pendingList"><div class="admin-empty">불러오는 중...</div></div>
+
+    <div class="admin-section-title">지도에 표시 중인 장소 <span class="count-badge" id="approvedCount">0</span></div>
+    <div id="approvedAdminList"><div class="admin-empty">불러오는 중...</div></div>
+  </div>
+</div>
+
 <!-- ===== 설정 필요: Firebase & Kakao ===== -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
-    getFirestore, collection, addDoc, query, where, orderBy,
-    onSnapshot, serverTimestamp
+    getFirestore, collection, addDoc, doc, updateDoc, deleteDoc,
+    query, where, orderBy, onSnapshot, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   // ⚠️ 여기에 본인의 Firebase 프로젝트 설정값을 넣어주세요.
   const firebaseConfig = {
@@ -480,7 +620,11 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const auth = getAuth(app);
   const placesCol = collection(db, "villagePlaces");
+
+  // 선생님 모드용 고정 계정 (Firebase Authentication > Users에서 미리 만들어둔 계정)
+  const TEACHER_EMAIL = 'teacher@ydmap.local';
 
   const CATEGORY_COLORS = {
     "공공기관": "#1B2A4A",
@@ -755,6 +899,130 @@
     coordDisplay.textContent = '아직 위치를 선택하지 않았어요.';
     pickMapBtn.textContent = '지도에서 위치 선택하기';
     submitBtn.disabled = true;
+  }
+
+  // ---------- 선생님 모드 ----------
+  const teacherBtn = document.getElementById('teacherBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const adminPanelBtn = document.getElementById('adminPanelBtn');
+  const loginOverlay = document.getElementById('loginOverlay');
+  const loginPassword = document.getElementById('loginPassword');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginMsg = document.getElementById('loginMsg');
+  const closeLogin = document.getElementById('closeLogin');
+  const adminOverlay = document.getElementById('adminOverlay');
+  const closeAdmin = document.getElementById('closeAdmin');
+
+  teacherBtn.addEventListener('click', () => {
+    loginOverlay.classList.add('show');
+    loginPassword.value = '';
+    loginMsg.textContent = '';
+    loginPassword.focus();
+  });
+  closeLogin.addEventListener('click', () => loginOverlay.classList.remove('show'));
+  loginOverlay.addEventListener('click', (e) => { if (e.target === loginOverlay) loginOverlay.classList.remove('show'); });
+
+  loginBtn.addEventListener('click', async () => {
+    loginMsg.textContent = '';
+    try {
+      await signInWithEmailAndPassword(auth, TEACHER_EMAIL, loginPassword.value);
+      loginOverlay.classList.remove('show');
+    } catch (err){
+      loginMsg.textContent = '비밀번호가 올바르지 않아요.';
+    }
+  });
+  loginPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') loginBtn.click(); });
+
+  logoutBtn.addEventListener('click', () => {
+    signOut(auth);
+    adminOverlay.classList.remove('show');
+  });
+
+  adminPanelBtn.addEventListener('click', () => adminOverlay.classList.add('show'));
+  closeAdmin.addEventListener('click', () => adminOverlay.classList.remove('show'));
+  adminOverlay.addEventListener('click', (e) => { if (e.target === adminOverlay) adminOverlay.classList.remove('show'); });
+
+  let adminUnsubs = [];
+  onAuthStateChanged(auth, (user) => {
+    if (user){
+      document.body.classList.add('teacher-mode');
+      subscribeAdminData();
+    } else {
+      document.body.classList.remove('teacher-mode');
+      adminUnsubs.forEach(u => u());
+      adminUnsubs = [];
+    }
+  });
+
+  function adminItem(id, data){
+    const el = document.createElement('div');
+    el.className = 'admin-item';
+    const color = CATEGORY_COLORS[data.category] || CATEGORY_COLORS['기타'];
+    el.innerHTML = `
+      <div class="info">
+        <span class="cat-badge" style="background:${color}">${escapeHTML(data.category)}</span>
+        <h3>${escapeHTML(data.name)}</h3>
+        <p>${escapeHTML(data.description)}</p>
+        <div class="meta">${data.reporter ? escapeHTML(data.reporter) + ' · ' : ''}위도 ${Number(data.lat).toFixed(5)}, 경도 ${Number(data.lng).toFixed(5)}</div>
+      </div>
+      <div class="actions"></div>
+    `;
+    return el;
+  }
+
+  function subscribeAdminData(){
+    adminUnsubs.forEach(u => u());
+    adminUnsubs = [];
+
+    const pendingQ = query(placesCol, where('status','==','pending'), orderBy('createdAt','asc'));
+    adminUnsubs.push(onSnapshot(pendingQ, (snap) => {
+      const list = document.getElementById('pendingList');
+      document.getElementById('pendingCount').textContent = snap.size;
+      if (snap.empty){ list.innerHTML = '<div class="admin-empty">대기 중인 등록이 없어요.</div>'; return; }
+      list.innerHTML = '';
+      snap.forEach(d => {
+        const el = adminItem(d.id, d.data());
+        const actions = el.querySelector('.actions');
+        const approveBtn = document.createElement('button');
+        approveBtn.className = 'admin-btn admin-btn-approve';
+        approveBtn.textContent = '승인';
+        approveBtn.addEventListener('click', async () => {
+          approveBtn.disabled = true;
+          await updateDoc(doc(db, 'villagePlaces', d.id), { status: 'approved', approvedAt: serverTimestamp() });
+        });
+        const rejectBtn = document.createElement('button');
+        rejectBtn.className = 'admin-btn admin-btn-reject';
+        rejectBtn.textContent = '거절';
+        rejectBtn.addEventListener('click', async () => {
+          if (!confirm('이 등록을 거절하고 삭제할까요?')) return;
+          await deleteDoc(doc(db, 'villagePlaces', d.id));
+        });
+        actions.appendChild(approveBtn);
+        actions.appendChild(rejectBtn);
+        list.appendChild(el);
+      });
+    }));
+
+    const approvedQ = query(placesCol, where('status','==','approved'), orderBy('createdAt','desc'));
+    adminUnsubs.push(onSnapshot(approvedQ, (snap) => {
+      const list = document.getElementById('approvedAdminList');
+      document.getElementById('approvedCount').textContent = snap.size;
+      if (snap.empty){ list.innerHTML = '<div class="admin-empty">아직 표시 중인 장소가 없어요.</div>'; return; }
+      list.innerHTML = '';
+      snap.forEach(d => {
+        const el = adminItem(d.id, d.data());
+        const actions = el.querySelector('.actions');
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'admin-btn admin-btn-delete';
+        deleteBtn.textContent = '지도에서 내리기';
+        deleteBtn.addEventListener('click', async () => {
+          if (!confirm('이 장소를 지도에서 삭제할까요?')) return;
+          await deleteDoc(doc(db, 'villagePlaces', d.id));
+        });
+        actions.appendChild(deleteBtn);
+        list.appendChild(el);
+      });
+    }));
   }
 
   window.__initKakaoMap = initMap;
