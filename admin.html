@@ -86,10 +86,9 @@
 </header>
 
 <div id="loginScreen">
-  <h2>선생님 로그인</h2>
-  <input type="email" id="loginEmail" placeholder="이메일">
-  <input type="password" id="loginPassword" placeholder="비밀번호">
-  <button id="loginBtn">로그인</button>
+  <h2>선생님 모드</h2>
+  <input type="password" id="loginPassword" placeholder="비밀번호를 입력하세요">
+  <button id="loginBtn">선생님 모드로 들어가기</button>
   <div id="loginMsg"></div>
 </div>
 
@@ -138,15 +137,21 @@
   const logoutBtn = document.getElementById('logoutBtn');
   const loginMsg = document.getElementById('loginMsg');
 
+  // 선생님 모드용 고정 계정 (Firebase Authentication > Users에서 미리 만들어둔 계정)
+  const TEACHER_EMAIL = 'teacher@ydmap.local';
+
   document.getElementById('loginBtn').addEventListener('click', async () => {
-    const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
     loginMsg.textContent = '';
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, TEACHER_EMAIL, password);
     } catch (err){
-      loginMsg.textContent = '로그인에 실패했어요. 이메일/비밀번호를 확인해주세요.';
+      loginMsg.textContent = '비밀번호가 올바르지 않아요.';
     }
+  });
+
+  document.getElementById('loginPassword').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('loginBtn').click();
   });
 
   logoutBtn.addEventListener('click', () => signOut(auth));
