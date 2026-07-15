@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>용답동네 발견 지도</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
+
+<style>
+  :root{
+    --navy:#1B2A4A;
+    --coral:#FF6F59;
+    --gold:#F2B134;
+    --sage:#7FA99B;
+    --paper:#FBF7EE;
+    --paper2:#F3EDDD;
+    --ink:#26324A;
+    --line: rgba(27,42,74,0.16);
+    --shadow: 0 6px 18px rgba(27,42,74,0.10);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    overflow:hidden;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:14px 22px;
+    background:var(--navy);
+    color:var(--paper);
+    box-shadow:var(--shadow);
+    z-index:20;
+  }
+  header .brand{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  header .brand .stamp-mark{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:30px;height:30px;
+    border:2px dashed var(--gold);
+    border-radius:50%;
+    font-size:14px;
+    transform:rotate(-8deg);
+    flex:none;
+  }
+  header h1{
+    font-family:'Gowun Batang', serif;
+    font-size:20px;
+    margin:0;
+    letter-spacing:-0.2px;
+  }
+  header p{
+    margin:0;
+    font-size:12px;
+    color:rgba(251,247,238,0.72);
+    display:none;
+  }
+  @media(min-width:640px){ header p{ display:block; } }
+
+  #registerBtn{
+    background:var(--coral);
+    color:white;
+    border:none;
+    border-radius:999px;
+    padding:10px 18px;
+    font-weight:700;
+    font-size:13px;
+    font-family:inherit;
+    cursor:pointer;
+    box-shadow:0 4px 10px rgba(255,111,89,0.35);
+    white-space:nowrap;
+    transition:transform .15s ease;
+  }
+  #registerBtn:hover{ transform:translateY(-1px); }
+  #registerBtn:active{ transform:translateY(0); }
+
+  /* ---------- Layout ---------- */
+  #app{
+    display:flex;
+    height:calc(100% - 60px);
+  }
+  #sidebar{
+    width:340px;
+    flex:none;
+    background:var(--paper);
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  #filters{
+    display:flex;
+    gap:6px;
+    padding:14px 14px 10px;
+    flex-wrap:wrap;
+    border-bottom:1px dashed var(--line);
+  }
+  .chip{
+    border:1.5px solid var(--line);
+    background:white;
+    color:var(--ink);
+    border-radius:999px;
+    padding:6px 12px;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .chip.active{
+    background:var(--navy);
+    border-color:var(--navy);
+    color:white;
+  }
+
+  #cardList{
+    flex:1;
+    overflow-y:auto;
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  #cardList::-webkit-scrollbar{ width:8px; }
+  #cardList::-webkit-scrollbar-thumb{ background:var(--line); border-radius:4px; }
+
+  .empty-state{
+    margin-top:40px;
+    text-align:center;
+    color:rgba(38,50,74,0.55);
+    font-size:13.5px;
+    line-height:1.7;
+    padding:0 10px;
+  }
+  .empty-state .stamp-mark{
+    display:block;
+    margin:0 auto 10px;
+    width:52px;height:52px;
+    border:2.5px dashed var(--gold);
+    border-radius:50%;
+    line-height:48px;
+    font-size:22px;
+  }
+
+  .place-card{
+    position:relative;
+    background:white;
+    border-radius:4px;
+    padding:14px 14px 16px;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    border:1px solid var(--line);
+    transition:transform .15s ease, box-shadow .15s ease;
+    /* perforated postcard edge */
+    background-image:
+      radial-gradient(circle at 0 50%, var(--paper) 5px, transparent 5.5px),
+      radial-gradient(circle at 100% 50%, var(--paper) 5px, transparent 5.5px);
+    background-position:left center, right center;
+    background-repeat:no-repeat;
+  }
+  .place-card:hover{ transform:translateY(-2px); box-shadow:0 10px 20px rgba(27,42,74,0.14); }
+  .place-card.selected{ outline:2px solid var(--coral); outline-offset:2px; }
+
+  .place-card .cat-badge{
+    display:inline-block;
+    font-size:10.5px;
+    font-weight:700;
+    padding:3px 8px;
+    border-radius:3px;
+    color:white;
+    margin-bottom:8px;
+    letter-spacing:0.2px;
+  }
+  .place-card h3{
+    font-family:'Gowun Batang', serif;
+    font-size:16px;
+    margin:0 0 6px;
+    color:var(--navy);
+  }
+  .place-card p{
+    font-size:12.5px;
+    line-height:1.55;
+    margin:0 0 8px;
+    color:rgba(38,50,74,0.82);
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .place-card .meta{
+    font-size:11px;
+    color:rgba(38,50,74,0.45);
+    display:flex;
+    justify-content:space-between;
+  }
+
+  #mapWrap{ flex:1; position:relative; }
+  #map{ width:100%; height:100%; }
+
+  /* ---------- Modal / register panel ---------- */
+  #overlay{
+    position:fixed; inset:0;
+    background:rgba(27,42,74,0.45);
+    display:none;
+    z-index:50;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  #overlay.show{ display:flex; }
+  @media(min-width:720px){
+    #overlay{ align-items:center; }
+  }
+
+  #panel{
+    background:var(--paper);
+    width:100%;
+    max-width:460px;
+    max-height:92vh;
+    overflow-y:auto;
+    border-radius:18px 18px 0 0;
+    padding:22px 22px 26px;
+    box-shadow:0 -8px 30px rgba(0,0,0,0.25);
+    position:relative;
+  }
+  @media(min-width:720px){
+    #panel{ border-radius:16px; box-shadow:0 20px 50px rgba(0,0,0,0.3); }
+  }
+  #panel h2{
+    font-family:'Gowun Batang', serif;
+    color:var(--navy);
+    font-size:19px;
+    margin:0 0 4px;
+  }
+  #panel .sub{
+    font-size:12.5px;
+    color:rgba(38,50,74,0.6);
+    margin:0 0 18px;
+    line-height:1.6;
+  }
+  #closePanel{
+    position:absolute;
+    top:16px; right:18px;
+    border:none;
+    background:none;
+    font-size:20px;
+    color:var(--ink);
+    cursor:pointer;
+  }
+
+  .field{ margin-bottom:16px; }
+  .field label{
+    display:block;
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--navy);
+    margin-bottom:6px;
+  }
+  .field .hint{
+    font-size:11px;
+    color:rgba(38,50,74,0.5);
+    margin-top:5px;
+  }
+  .field input[type=text], .field textarea, .field select{
+    width:100%;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    font-family:inherit;
+    font-size:13.5px;
+    background:white;
+    color:var(--ink);
+  }
+  .field textarea{ resize:vertical; min-height:76px; }
+  .field input:focus, .field textarea:focus, .field select:focus{
+    outline:2px solid var(--coral);
+    outline-offset:1px;
+  }
+
+  #catRow{ display:flex; gap:8px; flex-wrap:wrap; }
+  .cat-option{
+    border:1.5px solid var(--line);
+    background:white;
+    border-radius:8px;
+    padding:8px 12px;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .cat-option.selected{ color:white; border-color:transparent; }
+
+  #pickMapBtn{
+    width:100%;
+    border:1.5px dashed var(--sage);
+    background:rgba(127,169,155,0.08);
+    border-radius:8px;
+    padding:12px;
+    font-family:inherit;
+    font-size:13px;
+    font-weight:700;
+    color:var(--navy);
+    cursor:pointer;
+    text-align:center;
+  }
+  #pickMapBtn.active{
+    border-style:solid;
+    background:rgba(255,111,89,0.1);
+    border-color:var(--coral);
+    color:var(--coral);
+  }
+  #coordDisplay{
+    margin-top:8px;
+    font-size:12px;
+    color:rgba(38,50,74,0.65);
+  }
+
+  #submitBtn{
+    width:100%;
+    background:var(--coral);
+    color:white;
+    border:none;
+    border-radius:10px;
+    padding:14px;
+    font-size:14.5px;
+    font-weight:700;
+    font-family:inherit;
+    cursor:pointer;
+    margin-top:6px;
+  }
+  #submitBtn:disabled{ background:#d9b6ae; cursor:not-allowed; }
+
+  #formMsg{
+    font-size:12.5px;
+    margin-top:10px;
+    text-align:center;
+    min-height:16px;
+  }
+  #formMsg.error{ color:var(--coral); }
+  #formMsg.success{ color:var(--sage); }
+
+  /* mobile: sidebar becomes bottom drawer */
+  @media(max-width:760px){
+    #app{ flex-direction:column; }
+    #sidebar{ width:100%; height:42%; border-right:none; border-top:1px solid var(--line); order:2; }
+    #mapWrap{ order:1; height:58%; }
+    header p{ display:none; }
+    header h1{ font-size:17px; }
+  }
+
+  .kakao-tip-bubble{
+    position:absolute;
+    top:14px; left:14px;
+    background:white;
+    border:1.5px solid var(--coral);
+    border-radius:10px;
+    padding:10px 14px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--navy);
+    box-shadow:var(--shadow);
+    z-index:10;
+    display:none;
+    max-width:260px;
+    line-height:1.5;
+  }
+  .kakao-tip-bubble.show{ display:block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="stamp-mark">★</span>
+    <div>
+      <h1>용답동네 발견 지도</h1>
+      <p>서울용답초 어린이들이 소개하는 우리 동네 이야기</p>
+    </div>
+  </div>
+  <button id="registerBtn">＋ 우리 동네 장소 등록하기</button>
+</header>
+
+<div id="app">
+  <aside id="sidebar">
+    <div id="filters">
+      <button class="chip active" data-cat="전체">전체</button>
+      <button class="chip" data-cat="공공기관">공공기관</button>
+      <button class="chip" data-cat="맛집">맛집</button>
+      <button class="chip" data-cat="명소">명소</button>
+      <button class="chip" data-cat="기타">기타</button>
+    </div>
+    <div id="cardList">
+      <div class="empty-state">
+        <span class="stamp-mark">🗺️</span>
+        불러오는 중이에요...
+      </div>
+    </div>
+  </aside>
+
+  <div id="mapWrap">
+    <div id="map"></div>
+    <div class="kakao-tip-bubble" id="tipBubble">지도를 콕! 눌러서 위치를 찍어주세요</div>
+  </div>
+</div>
+
+<div id="overlay">
+  <div id="panel">
+    <button id="closePanel" aria-label="닫기">✕</button>
+    <h2>우리 동네 장소 등록</h2>
+    <p class="sub">등록한 내용은 선생님이 확인한 뒤 지도에 나타나요. 조금만 기다려주세요!</p>
+
+    <div class="field">
+      <label>장소 이름</label>
+      <input type="text" id="fName" maxlength="40" placeholder="예: 용답동 행복분식">
+    </div>
+
+    <div class="field">
+      <label>카테고리</label>
+      <div id="catRow">
+        <button type="button" class="cat-option" data-cat="공공기관">공공기관</button>
+        <button type="button" class="cat-option" data-cat="맛집">맛집</button>
+        <button type="button" class="cat-option" data-cat="명소">명소</button>
+        <button type="button" class="cat-option" data-cat="기타">기타</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>소개 글</label>
+      <textarea id="fDesc" maxlength="300" placeholder="이곳을 왜 소개하고 싶나요? 어떤 점이 좋았나요?"></textarea>
+    </div>
+
+    <div class="field">
+      <label>위치</label>
+      <button type="button" id="pickMapBtn">지도에서 위치 선택하기</button>
+      <div id="coordDisplay">아직 위치를 선택하지 않았어요.</div>
+    </div>
+
+    <div class="field">
+      <label>작성자 (반 / 이름) <span style="font-weight:400;color:rgba(38,50,74,0.5);">- 선택</span></label>
+      <input type="text" id="fReporter" maxlength="20" placeholder="예: 5학년 3반 홍길동">
+    </div>
+
+    <button id="submitBtn" disabled>선생님께 등록 요청하기</button>
+    <div id="formMsg"></div>
+  </div>
+</div>
+
+<!-- ===== 설정 필요: Firebase & Kakao ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, query, where, orderBy,
+    onSnapshot, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // ⚠️ 여기에 본인의 Firebase 프로젝트 설정값을 넣어주세요.
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const placesCol = collection(db, "villagePlaces");
+
+  const CATEGORY_COLORS = {
+    "공공기관": "#1B2A4A",
+    "맛집": "#FF6F59",
+    "명소": "#F2B134",
+    "기타": "#7FA99B"
+  };
+
+  // ---- 학교 대략 위치 (주소 지오코딩 성공 전 기본값: 서울 성동구 용답동) ----
+  let map, geocoder, places;
+  let currentMarkers = [];
+  let allPlaces = [];
+  let activeFilter = "전체";
+  let selectedCardId = null;
+
+  function pinSVG(color){
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="34" height="44" viewBox="0 0 34 44">
+        <path d="M17 0C7.6 0 0 7.6 0 17c0 12.7 17 27 17 27s17-14.3 17-27C34 7.6 26.4 0 17 0z" fill="${color}"/>
+        <circle cx="17" cy="17" r="7" fill="#FBF7EE"/>
+      </svg>`;
+    return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+  }
+
+  function initMap(){
+    const container = document.getElementById('map');
+    map = new kakao.maps.Map(container, {
+      center: new kakao.maps.LatLng(37.5636, 127.0388),
+      level: 4
+    });
+    geocoder = new kakao.maps.services.Geocoder();
+    places = new kakao.maps.services.Places();
+
+    // 학교 주소로 지오코딩해서 중심 보정
+    geocoder.addressSearch('서울 성동구 용답25길 1', function(result, status){
+      if (status === kakao.maps.services.Status.OK) {
+        const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+        map.setCenter(coords);
+        const schoolMarker = new kakao.maps.Marker({ map, position: coords });
+        const iw = new kakao.maps.InfoWindow({ content: '<div style="padding:6px 10px;font-size:12px;">서울용답초등학교</div>' });
+        kakao.maps.event.addListener(schoolMarker, 'click', () => iw.open(map, schoolMarker));
+      }
+    });
+
+    subscribePlaces();
+  }
+
+  function subscribePlaces(){
+    const q = query(placesCol, where("status","==","approved"), orderBy("createdAt","desc"));
+    onSnapshot(q, (snap) => {
+      allPlaces = [];
+      snap.forEach(doc => allPlaces.push({ id: doc.id, ...doc.data() }));
+      renderCards();
+      renderMarkers();
+    }, (err) => {
+      console.error(err);
+      document.getElementById('cardList').innerHTML =
+        '<div class="empty-state">지도를 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>';
+    });
+  }
+
+  function filteredPlaces(){
+    if (activeFilter === "전체") return allPlaces;
+    return allPlaces.filter(p => p.category === activeFilter);
+  }
+
+  function renderCards(){
+    const list = document.getElementById('cardList');
+    const items = filteredPlaces();
+    if (items.length === 0){
+      list.innerHTML = `<div class="empty-state">
+        <span class="stamp-mark">✉️</span>
+        아직 이 카테고리에는<br>발견된 이야기가 없어요.<br>첫 번째 발견자가 되어보세요!
+      </div>`;
+      return;
+    }
+    list.innerHTML = "";
+    items.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'place-card' + (p.id === selectedCardId ? ' selected' : '');
+      card.dataset.id = p.id;
+      const color = CATEGORY_COLORS[p.category] || CATEGORY_COLORS['기타'];
+      card.innerHTML = `
+        <span class="cat-badge" style="background:${color}">${p.category}</span>
+        <h3>${escapeHTML(p.name)}</h3>
+        <p>${escapeHTML(p.description || '')}</p>
+        <div class="meta"><span>${p.reporter ? escapeHTML(p.reporter) : '용답동 친구'}</span></div>
+      `;
+      card.addEventListener('click', () => focusPlace(p));
+      list.appendChild(card);
+    });
+  }
+
+  function renderMarkers(){
+    currentMarkers.forEach(m => m.setMap(null));
+    currentMarkers = [];
+    filteredPlaces().forEach(p => {
+      if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
+      const color = CATEGORY_COLORS[p.category] || CATEGORY_COLORS['기타'];
+      const image = new kakao.maps.MarkerImage(pinSVG(color), new kakao.maps.Size(30,38), { offset: new kakao.maps.Point(15,38) });
+      const marker = new kakao.maps.Marker({
+        map, position: new kakao.maps.LatLng(p.lat, p.lng), image
+      });
+      const iw = new kakao.maps.InfoWindow({
+        content: `<div style="padding:8px 12px;max-width:200px;font-size:12.5px;line-height:1.5;">
+          <strong>${escapeHTML(p.name)}</strong><br>${escapeHTML((p.description||'').slice(0,60))}
+        </div>`
+      });
+      kakao.maps.event.addListener(marker, 'click', () => {
+        iw.open(map, marker);
+        selectedCardId = p.id;
+        renderCards();
+      });
+      marker._placeId = p.id;
+      currentMarkers.push(marker);
+    });
+  }
+
+  function focusPlace(p){
+    selectedCardId = p.id;
+    renderCards();
+    if (typeof p.lat === 'number' && typeof p.lng === 'number'){
+      map.panTo(new kakao.maps.LatLng(p.lat, p.lng));
+      const target = currentMarkers.find(m => m._placeId === p.id);
+      if (target) kakao.maps.event.trigger(target, 'click');
+    }
+  }
+
+  function escapeHTML(str){
+    return String(str).replace(/[&<>"']/g, s => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[s]));
+  }
+
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeFilter = chip.dataset.cat;
+      renderCards();
+      renderMarkers();
+    });
+  });
+
+  // ---------- 등록 패널 ----------
+  const overlay = document.getElementById('overlay');
+  const panel = document.getElementById('panel');
+  const registerBtn = document.getElementById('registerBtn');
+  const closePanel = document.getElementById('closePanel');
+  const pickMapBtn = document.getElementById('pickMapBtn');
+  const coordDisplay = document.getElementById('coordDisplay');
+  const tipBubble = document.getElementById('tipBubble');
+  const submitBtn = document.getElementById('submitBtn');
+  const formMsg = document.getElementById('formMsg');
+
+  let pickingMode = false;
+  let tempMarker = null;
+  let chosenCoord = null;
+  let chosenCategory = null;
+  let clickListener = null;
+
+  registerBtn.addEventListener('click', () => {
+    overlay.classList.add('show');
+  });
+  closePanel.addEventListener('click', closeAndReset);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeAndReset(); });
+
+  function closeAndReset(){
+    overlay.classList.remove('show');
+    stopPicking();
+  }
+
+  document.querySelectorAll('.cat-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cat-option').forEach(b => {
+        b.classList.remove('selected');
+        b.style.background = 'white';
+        b.style.color = 'var(--ink)';
+      });
+      btn.classList.add('selected');
+      const color = CATEGORY_COLORS[btn.dataset.cat];
+      btn.style.background = color;
+      btn.style.color = 'white';
+      chosenCategory = btn.dataset.cat;
+      validateForm();
+    });
+  });
+
+  pickMapBtn.addEventListener('click', () => {
+    if (pickingMode){ stopPicking(); return; }
+    pickingMode = true;
+    pickMapBtn.classList.add('active');
+    pickMapBtn.textContent = '지도를 클릭해서 위치를 찍어주세요 (취소하려면 다시 클릭)';
+    tipBubble.classList.add('show');
+    overlay.classList.remove('show'); // 지도를 잘 보이게 패널을 잠시 숨김
+    clickListener = kakao.maps.event.addListener(map, 'click', (mouseEvent) => {
+      const latlng = mouseEvent.latLng;
+      chosenCoord = { lat: latlng.getLat(), lng: latlng.getLng() };
+      if (tempMarker) tempMarker.setMap(null);
+      tempMarker = new kakao.maps.Marker({
+        map, position: latlng,
+        image: new kakao.maps.MarkerImage(pinSVG('#FF6F59'), new kakao.maps.Size(30,38), { offset: new kakao.maps.Point(15,38) })
+      });
+      coordDisplay.textContent = `선택한 위치: 위도 ${chosenCoord.lat.toFixed(5)}, 경도 ${chosenCoord.lng.toFixed(5)}`;
+      overlay.classList.add('show');
+      stopPicking();
+      validateForm();
+    });
+  });
+
+  function stopPicking(){
+    pickingMode = false;
+    pickMapBtn.classList.remove('active');
+    pickMapBtn.textContent = chosenCoord ? '위치 다시 선택하기' : '지도에서 위치 선택하기';
+    tipBubble.classList.remove('show');
+    if (clickListener){ kakao.maps.event.removeListener(clickListener); clickListener = null; }
+  }
+
+  const fName = document.getElementById('fName');
+  const fDesc = document.getElementById('fDesc');
+  const fReporter = document.getElementById('fReporter');
+  [fName, fDesc].forEach(el => el.addEventListener('input', validateForm));
+
+  function validateForm(){
+    const ok = fName.value.trim().length > 0 && fDesc.value.trim().length > 0 && chosenCategory && chosenCoord;
+    submitBtn.disabled = !ok;
+  }
+
+  submitBtn.addEventListener('click', async () => {
+    submitBtn.disabled = true;
+    submitBtn.textContent = '등록하는 중...';
+    formMsg.textContent = '';
+    formMsg.className = '';
+    try {
+      await addDoc(placesCol, {
+        name: fName.value.trim(),
+        category: chosenCategory,
+        description: fDesc.value.trim(),
+        reporter: fReporter.value.trim(),
+        lat: chosenCoord.lat,
+        lng: chosenCoord.lng,
+        status: 'pending',
+        createdAt: serverTimestamp()
+      });
+      formMsg.textContent = '등록 요청을 보냈어요! 선생님이 확인하면 지도에 나타나요 🎉';
+      formMsg.className = 'success';
+      setTimeout(() => {
+        resetForm();
+        closeAndReset();
+      }, 1600);
+    } catch (err){
+      console.error(err);
+      formMsg.textContent = '문제가 생겼어요. 다시 시도해주세요.';
+      formMsg.className = 'error';
+      submitBtn.disabled = false;
+    }
+    submitBtn.textContent = '선생님께 등록 요청하기';
+  });
+
+  function resetForm(){
+    fName.value = '';
+    fDesc.value = '';
+    fReporter.value = '';
+    chosenCategory = null;
+    chosenCoord = null;
+    if (tempMarker){ tempMarker.setMap(null); tempMarker = null; }
+    document.querySelectorAll('.cat-option').forEach(b => {
+      b.classList.remove('selected');
+      b.style.background = 'white';
+      b.style.color = 'var(--ink)';
+    });
+    coordDisplay.textContent = '아직 위치를 선택하지 않았어요.';
+    pickMapBtn.textContent = '지도에서 위치 선택하기';
+    submitBtn.disabled = true;
+  }
+
+  window.__initKakaoMap = initMap;
+</script>
+
+<!-- ⚠️ 여기에 카카오 개발자센터에서 발급받은 JavaScript 키를 넣어주세요 -->
+<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_JS_KEY&libraries=services&autoload=false"></script>
+<script>
+  kakao.maps.load(function(){
+    window.__initKakaoMap();
+  });
+</script>
+</body>
+</html>
