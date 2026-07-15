@@ -438,7 +438,7 @@
     width:100%; border:1.5px solid var(--line); border-radius:8px;
     padding:10px 12px; font-family:inherit; font-size:13.5px; margin-bottom:12px;
   }
-  #loginPanel button{
+  #loginPanel button:not(#closeLogin){
     width:100%; background:var(--coral); color:white; border:none; border-radius:8px;
     padding:11px; font-weight:700; cursor:pointer; font-family:inherit;
   }
@@ -501,7 +501,7 @@
   </div>
   <div class="header-actions">
     <span class="teacher-badge">🔓 선생님 모드</span>
-    <button id="adminPanelBtn" class="ghost-btn">승인 관리</button>
+    <button id="adminPanelBtn" class="ghost-btn">장소 관리</button>
     <button id="logoutBtn" class="ghost-btn">로그아웃</button>
     <button id="teacherBtn" class="ghost-btn">선생님 모드</button>
     <button id="registerBtn">＋ 우리 동네 장소 등록하기</button>
@@ -535,7 +535,7 @@
   <div id="panel">
     <button id="closePanel" aria-label="닫기">✕</button>
     <h2>우리 동네 장소 등록</h2>
-    <p class="sub">등록한 내용은 선생님이 확인한 뒤 지도에 나타나요. 조금만 기다려주세요!</p>
+    <p class="sub">등록하면 바로 지도에 나타나요. 우리 동네를 소개하는 좋은 이야기를 들려주세요!</p>
 
     <div class="field">
       <label>장소 이름</label>
@@ -568,7 +568,7 @@
       <input type="text" id="fReporter" maxlength="20" placeholder="예: 5학년 3반 홍길동">
     </div>
 
-    <button id="submitBtn" disabled>선생님께 등록 요청하기</button>
+    <button id="submitBtn" disabled>우리 동네 지도에 등록하기</button>
     <div id="formMsg"></div>
   </div>
 </div>
@@ -586,13 +586,10 @@
 <div id="adminOverlay">
   <div id="adminPanel">
     <button id="closeAdmin" aria-label="닫기">✕</button>
-    <h2>승인 관리</h2>
-    <p class="sub">학생들이 등록한 장소를 승인하거나 거절할 수 있어요.</p>
+    <h2>장소 관리</h2>
+    <p class="sub">부적절한 내용이 있으면 삭제할 수 있어요. 등록과 동시에 지도에 바로 반영됩니다.</p>
 
-    <div class="admin-section-title">승인 대기 중 <span class="count-badge" id="pendingCount">0</span></div>
-    <div id="pendingList"><div class="admin-empty">불러오는 중...</div></div>
-
-    <div class="admin-section-title">지도에 표시 중인 장소 <span class="count-badge" id="approvedCount">0</span></div>
+    <div class="admin-section-title">지도에 등록된 장소 <span class="count-badge" id="approvedCount">0</span></div>
     <div id="approvedAdminList"><div class="admin-empty">불러오는 중...</div></div>
   </div>
 </div>
@@ -673,7 +670,7 @@
   }
 
   function subscribePlaces(){
-    const q = query(placesCol, where("status","==","approved"), orderBy("createdAt","desc"));
+    const q = query(placesCol, orderBy("createdAt","desc"));
     onSnapshot(q, (snap) => {
       allPlaces = [];
       snap.forEach(doc => allPlaces.push({ id: doc.id, ...doc.data() }));
@@ -866,10 +863,9 @@
         reporter: fReporter.value.trim(),
         lat: chosenCoord.lat,
         lng: chosenCoord.lng,
-        status: 'pending',
         createdAt: serverTimestamp()
       });
-      formMsg.textContent = '등록 요청을 보냈어요! 선생님이 확인하면 지도에 나타나요 🎉';
+      formMsg.textContent = '등록됐어요! 우리 동네 지도에서 바로 확인할 수 있어요 🎉';
       formMsg.className = 'success';
       setTimeout(() => {
         resetForm();
@@ -881,7 +877,7 @@
       formMsg.className = 'error';
       submitBtn.disabled = false;
     }
-    submitBtn.textContent = '선생님께 등록 요청하기';
+    submitBtn.textContent = '우리 동네 지도에 등록하기';
   });
 
   function resetForm(){
@@ -974,47 +970,18 @@
     adminUnsubs.forEach(u => u());
     adminUnsubs = [];
 
-    const pendingQ = query(placesCol, where('status','==','pending'), orderBy('createdAt','asc'));
-    adminUnsubs.push(onSnapshot(pendingQ, (snap) => {
-      const list = document.getElementById('pendingList');
-      document.getElementById('pendingCount').textContent = snap.size;
-      if (snap.empty){ list.innerHTML = '<div class="admin-empty">대기 중인 등록이 없어요.</div>'; return; }
-      list.innerHTML = '';
-      snap.forEach(d => {
-        const el = adminItem(d.id, d.data());
-        const actions = el.querySelector('.actions');
-        const approveBtn = document.createElement('button');
-        approveBtn.className = 'admin-btn admin-btn-approve';
-        approveBtn.textContent = '승인';
-        approveBtn.addEventListener('click', async () => {
-          approveBtn.disabled = true;
-          await updateDoc(doc(db, 'villagePlaces', d.id), { status: 'approved', approvedAt: serverTimestamp() });
-        });
-        const rejectBtn = document.createElement('button');
-        rejectBtn.className = 'admin-btn admin-btn-reject';
-        rejectBtn.textContent = '거절';
-        rejectBtn.addEventListener('click', async () => {
-          if (!confirm('이 등록을 거절하고 삭제할까요?')) return;
-          await deleteDoc(doc(db, 'villagePlaces', d.id));
-        });
-        actions.appendChild(approveBtn);
-        actions.appendChild(rejectBtn);
-        list.appendChild(el);
-      });
-    }));
-
-    const approvedQ = query(placesCol, where('status','==','approved'), orderBy('createdAt','desc'));
-    adminUnsubs.push(onSnapshot(approvedQ, (snap) => {
+    const allQ = query(placesCol, orderBy('createdAt','desc'));
+    adminUnsubs.push(onSnapshot(allQ, (snap) => {
       const list = document.getElementById('approvedAdminList');
       document.getElementById('approvedCount').textContent = snap.size;
-      if (snap.empty){ list.innerHTML = '<div class="admin-empty">아직 표시 중인 장소가 없어요.</div>'; return; }
+      if (snap.empty){ list.innerHTML = '<div class="admin-empty">아직 등록된 장소가 없어요.</div>'; return; }
       list.innerHTML = '';
       snap.forEach(d => {
         const el = adminItem(d.id, d.data());
         const actions = el.querySelector('.actions');
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'admin-btn admin-btn-delete';
-        deleteBtn.textContent = '지도에서 내리기';
+        deleteBtn.textContent = '지도에서 삭제';
         deleteBtn.addEventListener('click', async () => {
           if (!confirm('이 장소를 지도에서 삭제할까요?')) return;
           await deleteDoc(doc(db, 'villagePlaces', d.id));
